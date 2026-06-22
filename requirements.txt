@@ -1,0 +1,20 @@
+# Core ML
+torch>=2.1
+transformers>=4.40
+datasets>=2.19
+seqeval>=1.2.2
+scikit-learn>=1.4
+
+# Image preprocessing (scripts/preprocessing/)
+Pillow>=10.0
+python-doctr>=0.8
+vietocr>=0.3.13
+opencv-python>=4.8
+
+# Post-processing heuristics (src/heuristics.py)
+thefuzz>=0.22
+python-Levenshtein>=0.25
+
+# Dataset management
+gdown>=4.7                          # Google Drive downloads
+huggingface-hub>=0.23               # HuggingFace Hub integration

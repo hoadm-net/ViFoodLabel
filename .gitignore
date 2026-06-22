@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Planning/progress (managed locally, not in repo)
+.plan/
+
+# Data (large/binary — published via HuggingFace Hub, not git history)
+data/label_studio/*
+data/raw/*
+data/thumbnail/*
+data/processed/*
+!data/**/.gitkeep
+!data/README.md
+
+# Model checkpoints / training artifacts
+checkpoints/
+results/
+*.pt
+*.bin
+*.safetensors
+
+# Runtime
+*.log
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

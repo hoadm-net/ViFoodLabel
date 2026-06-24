@@ -115,9 +115,11 @@ def process_image(
     image_path: str,
     doctr_model: Any,
     vietocr_model: Any,
+    image_base_url: str,
 ) -> dict:
     """Process one image: detect bboxes, recognize text, format for Label Studio."""
     filename = Path(image_path).name
+    image_url = f"{image_base_url.rstrip('/')}/{filename}"
     img_cv = cv2.imread(image_path)
     if img_cv is None:
         raise ValueError(f"Could not read image: {image_path}")
@@ -186,7 +188,7 @@ def process_image(
     print(f"  → {len(ls_results)} words detected and recognized")
 
     return {
-        "data": {"image": filename},
+        "data": {"image": image_url},
         "predictions": [{"result": ls_results}],
     }
 
@@ -225,6 +227,11 @@ def main() -> None:
     parser.add_argument("--end", type=int, default=None, help="End image index (auto-detects if omitted)")
     parser.add_argument("--ext", default="jpeg", help="Image extension")
     parser.add_argument("--output", default="tasks.json", help="Output tasks.json path")
+    parser.add_argument(
+        "--image-base-url",
+        default="http://103.159.52.8/images",
+        help="Base URL the images are served from (Label Studio reads 'data.image' as a URL, not a local path)",
+    )
 
     args = parser.parse_args()
 
@@ -247,7 +254,7 @@ def main() -> None:
     for i, img_path in enumerate(image_list, 1):
         print(f"[{i}/{len(image_list)}] {os.path.basename(img_path)}")
         try:
-            task = process_image(img_path, doctr_model, vietocr_model)
+            task = process_image(img_path, doctr_model, vietocr_model, args.image_base_url)
             tasks.append(task)
         except Exception as e:
             print(f"  Error: {e}")

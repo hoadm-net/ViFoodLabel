@@ -26,6 +26,9 @@ results/
 # Runtime
 *.log
 
+# Local run-results log (not part of the public repo)
+results.md
+
 # OS / editor
 .DS_Store
 .vscode/

@@ -20,15 +20,16 @@ Since the primary goal of this research is to provide a high-quality, diverse Vi
 
 According to **UniKIE-Bench** (2026, benchmarking 15 SOTA MLLMs on document KIE), current MLLMs still suffer *"substantial performance degradation under diverse schema definitions, long-tail key fields, and complex layouts"* — exactly the conditions food labels present (multi-row nutrition tables, long-tail additive codes, dense layouts). Tier C is mandatory to demonstrate that the dataset remains challenging for SOTA 2026 — not solvable by a single prompt.
 
-7. **One closed-source MLLM** (GPT-4o or Gemini) — zero-shot prompt evaluation using entity schema.
-8. **One open-weight MLLM** (Qwen2-VL or InternVL) — required for reproducibility (Q1 reviewers typically mandate this, not just closed APIs).
+7. **One closed-source MLLM** (GPT-5) — zero-shot prompt evaluation using entity schema.
+8. **One open-weight MLLM** (Qwen3-VL) — required for reproducibility (Q1 reviewers typically mandate this, not just closed APIs).
 
 **Related observation**: A bilingual (English–Arabic) nutrition-extraction study from food labels using GPT-4V/4o/Gemini showed strong English performance but significant degradation on non-Latin-script languages before post-processing — a similar pattern is expected for Vietnamese diacritics and will be validated experimentally here.
 
 ## Tier D — Proposed Contribution (Vietnamese-Specific Model)
 
 9. **Model-based Relation Extraction**: A lightweight typed-link predictor (`src/relation_model.py`, inspired by GLiNER-Relex / Parallel Pointer Networks) that predicts `HAS_VALUE` link probability from entity-pair embeddings, replacing the geometric heuristic baseline in `src/relation_extractor.py`. This is the paper's methodological contribution — measuring Relation-F1 delta between the two approaches.
-10. **Generative End-to-End Baseline for Task 3**: Task 3 (End-to-End KIE, see `benchmark-tasks.md`) currently has no model baseline — only the heuristic cascade (`src/ocr_engine.py` → `src/ner_engine.py` → `src/relation_extractor.py`/`src/relation_model.py` → `src/json_parser.py`). A generative seq2seq baseline (e.g., fine-tuned Donut) that produces JSON directly from images is planned.
+
+> **Decision (2026-06-24)**: dropped the generative seq2seq (Donut) baseline for Task 3. End-to-End KIE is evaluated via the Tier C zero-shot MLLMs (image → JSON directly) instead — matches the actual paper outline (Section 5.2 lists only text-only / layout-aware / zero-shot MLLM baseline categories) and avoids committing to an extra heavyweight training pipeline while Tier A–D are still scaffolds. Donut/UDOP/OmniParser remain cited in Related Work as motivation for the task design only, not as a baseline to train.
 
 ## Module Reference for Task 3 Reproduction (Benchmark Use Only)
 

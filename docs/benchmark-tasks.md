@@ -65,7 +65,7 @@ ViFoodLabel supports three tasks of increasing difficulty.
 
 **Evaluation protocol**: Each field is evaluated independently. String normalization (lowercase, whitespace) is applied before comparison. List fields (ingredients, additives, etc.) use set-based F1.
 
-> **Baseline status**: Task 3 currently has no model-based results — only a heuristic cascade chaining `src/ocr_engine.py` -> `src/ner_engine.py` -> `src/relation_extractor.py` -> `src/json_parser.py` (run ad hoc for benchmarking, not exposed as a service). Planned baselines: zero-shot MLLM prompting (Tier C) and a fine-tuned generative seq2seq model (Tier D) — see [baseline-models.md](baseline-models.md).
+> **Baseline status**: Task 3 currently has no model-based results — only a heuristic cascade chaining `src/ocr_engine.py` -> `src/ner_engine.py` -> `src/relation_extractor.py` -> `src/json_parser.py` (run ad hoc for benchmarking, not exposed as a service). Planned baseline: zero-shot MLLM prompting (Tier C, image -> JSON directly) — see [baseline-models.md](baseline-models.md). No generative seq2seq (Donut-style) baseline is planned.
 
 ---
 

@@ -108,11 +108,10 @@ python scripts/baselines/01_phobert.py \
     --val data/processed/val.json \
     --epochs 20
 
-# LayoutLMv3 (text + layout)
+# LayoutLMv3 (text + layout, no visual)
 python scripts/baselines/03_layoutlmv3_no_visual.py \
     --train data/processed/train.json \
     --val data/processed/val.json \
-    --images data/raw/ \
     --epochs 30
 ```
 

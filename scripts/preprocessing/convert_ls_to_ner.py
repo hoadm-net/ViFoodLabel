@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 def normalize_bbox(x_pct: float, y_pct: float, w_pct: float, h_pct: float) -> tuple[int, int, int, int]:
@@ -36,14 +38,119 @@ def sort_reading_order(tokens: list[dict]) -> list[dict]:
 
 
 def autofix_bio(tags: list[str]) -> list[str]:
-    """Convert a dangling I-<TYPE> (no preceding B-<TYPE>) into B-<TYPE>."""
-    # TODO: walk tags, track open span type, fix dangling I- per entity-schema.md
-    raise NotImplementedError
+    """Convert a dangling I-<TYPE> (no preceding B-<TYPE>/I-<TYPE> of the same type) into B-<TYPE>."""
+    fixed = []
+    open_type = None
+    for tag in tags:
+        if tag == "O":
+            fixed.append(tag)
+            open_type = None
+            continue
+        prefix, _, etype = tag.partition("-")
+        if prefix == "B" or etype == open_type:
+            fixed.append(tag)
+        else:
+            fixed.append(f"B-{etype}")
+        open_type = etype
+    return fixed
 
 
 def load_label_studio_export(path: Path) -> list[dict]:
-    # TODO: parse Label Studio JSON export format into per-image token lists
-    raise NotImplementedError
+    """Parse a Label Studio JSON export into per-image token/relation records.
+
+    Each token is reconstructed by pairing the `textarea` (transcription)
+    and `rectanglelabels` (BIO tag) result entries that share the same
+    Label Studio annotation `id`. A small fraction of real exports have
+    one half missing (e.g. a leftover OCR box never reviewed) -- these are
+    kept with a defaulted label/text rather than dropped, and counted in
+    the warning printed at the end.
+    """
+    with open(path, encoding="utf-8") as f:
+        raw_tasks = json.load(f)
+
+    missing_label = 0
+    missing_text = 0
+    skipped_cancelled = 0
+    images = []
+
+    for task in raw_tasks:
+        annotations = task.get("annotations") or []
+        if not annotations:
+            continue
+        annotation = annotations[0]
+        if annotation.get("was_cancelled"):
+            skipped_cancelled += 1
+            continue
+
+        by_id: dict[str, dict] = {}
+        image_width = image_height = None
+        for r in annotation["result"]:
+            rtype = r.get("type")
+            if rtype in ("textarea", "rectanglelabels"):
+                by_id.setdefault(r["id"], {})[rtype] = r
+                image_width = image_width or r.get("original_width")
+                image_height = image_height or r.get("original_height")
+
+        tokens_raw = []
+        for ls_id, parts in by_id.items():
+            textarea = parts.get("textarea")
+            rect = parts.get("rectanglelabels")
+            rect_labels = rect["value"].get("rectanglelabels") if rect else None
+
+            if not rect_labels:
+                missing_label += 1
+            if textarea is None:
+                missing_text += 1
+
+            value = (rect or textarea)["value"]
+            text = textarea["value"]["text"][0] if textarea else ""
+            label = rect_labels[0] if rect_labels else "O"
+            bbox = normalize_bbox(value["x"], value["y"], value["width"], value["height"])
+            tokens_raw.append({"ls_id": ls_id, "text": text, "label": label, "bbox": bbox})
+
+        tokens_sorted = sort_reading_order(tokens_raw)
+        id_map = {t["ls_id"]: f"token_{i:03d}" for i, t in enumerate(tokens_sorted)}
+
+        relations = []
+        for r in annotation["result"]:
+            if r.get("type") != "relation":
+                continue
+            from_id = id_map.get(r["from_id"])
+            to_id = id_map.get(r["to_id"])
+            if from_id is not None and to_id is not None:
+                relations.append({"from_id": from_id, "to_id": to_id, "type": "HAS_VALUE"})
+
+        image_url = task["data"].get("image", "")
+        image_name = Path(urlparse(image_url).path).name or image_url
+
+        images.append({
+            "id": Path(image_name).stem,
+            "image": image_name,
+            "image_width": image_width,
+            "image_height": image_height,
+            "tokens": [
+                {"text": t["text"], "bbox": list(t["bbox"]), "label": t["label"]}
+                for t in tokens_sorted
+            ],
+            "relations": relations,
+        })
+
+    if missing_label or missing_text or skipped_cancelled:
+        print(
+            f"[load_label_studio_export] {missing_label} tokens missing a label (defaulted to O), "
+            f"{missing_text} tokens missing transcription (defaulted to ''), "
+            f"{skipped_cancelled} cancelled annotations skipped -- "
+            f"run check_data.py for a per-image breakdown"
+        )
+
+    return images
+
+
+def split_train_val(images: list[dict], split: float, seed: int = 42) -> tuple[list[dict], list[dict]]:
+    shuffled = images[:]
+    random.Random(seed).shuffle(shuffled)
+    cut = int(len(shuffled) * split)
+    return shuffled[:cut], shuffled[cut:]
 
 
 def main() -> None:
@@ -54,8 +161,28 @@ def main() -> None:
     parser.add_argument("--autofix-bio", action="store_true", help="autofix dangling I- tags")
     args = parser.parse_args()
 
-    # TODO: load -> normalize -> sort -> validate/autofix -> split -> write train.json/val.json
-    raise NotImplementedError
+    images = load_label_studio_export(Path(args.input))
+
+    if args.autofix_bio:
+        for img in images:
+            tags = [t["label"] for t in img["tokens"]]
+            fixed = autofix_bio(tags)
+            n_fixed = sum(1 for old, new in zip(tags, fixed) if old != new)
+            if n_fixed:
+                print(f"  autofixed {n_fixed} dangling I- tag(s) in {img['image']}")
+            for token, new_tag in zip(img["tokens"], fixed):
+                token["label"] = new_tag
+
+    train, val = split_train_val(images, args.split)
+
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with open(output_dir / "train.json", "w", encoding="utf-8") as f:
+        json.dump(train, f, ensure_ascii=False, indent=2)
+    with open(output_dir / "val.json", "w", encoding="utf-8") as f:
+        json.dump(val, f, ensure_ascii=False, indent=2)
+
+    print(f"Wrote {len(train)} train / {len(val)} val images to {output_dir}")
 
 
 if __name__ == "__main__":

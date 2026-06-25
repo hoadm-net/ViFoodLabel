@@ -44,12 +44,21 @@ def _prf(tp: int, fp: int, fn: int) -> tuple[float, float, float]:
     return precision, recall, f1
 
 
-def _prf_report(counts: dict[str, list[int]], prefix: str) -> dict:
+def _prf_report(counts: dict[str, list[int]], prefix: str, exclude_labels: set[str] = frozenset()) -> dict:
+    """Build a micro precision/recall/F1 report plus a per-label breakdown.
+
+    Labels in `exclude_labels` are still reported per-label but kept OUT of the
+    micro totals -- used to drop the majority `O` class from token F1 so the
+    headline number measures entity-token tagging, not overall accuracy
+    (a micro-average that includes `O` collapses to plain token accuracy).
+    """
     per_label = {}
     tp_total = fp_total = fn_total = 0
     for label, (tp, fp, fn) in counts.items():
         precision, recall, f1 = _prf(tp, fp, fn)
         per_label[label] = {"precision": precision, "recall": recall, "f1": f1}
+        if label in exclude_labels:
+            continue
         tp_total += tp
         fp_total += fp
         fn_total += fn
@@ -63,7 +72,14 @@ def _prf_report(counts: dict[str, list[int]], prefix: str) -> dict:
 
 
 def token_f1(predictions: list[dict], ground_truth: list[dict]) -> dict:
-    """Per-token BIO tag classification F1 (micro + per-label)."""
+    """Per-token BIO tag classification F1 (micro + per-label).
+
+    The `O` class is excluded from the micro total: with it included the
+    micro-average is mathematically identical to token accuracy (every token
+    contributes exactly one tp or one fp+one fn), which is dominated by the
+    majority `O` tokens and not what "token F1" should report. `O` is still
+    shown in the per-label breakdown for diagnostics.
+    """
     counts: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0])
     for pred, gold in _align(predictions, ground_truth):
         pred_tags = [t["label"] for t in pred["tokens"]]
@@ -74,7 +90,7 @@ def token_f1(predictions: list[dict], ground_truth: list[dict]) -> dict:
             else:
                 counts[p][1] += 1  # fp for predicted label
                 counts[g][2] += 1  # fn for gold label
-    return _prf_report(counts, "token")
+    return _prf_report(counts, "token", exclude_labels={"O"})
 
 
 def entity_f1(predictions: list[dict], ground_truth: list[dict]) -> dict:

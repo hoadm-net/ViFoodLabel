@@ -85,17 +85,23 @@ def detokenize_bio_entities(bio_entities: list) -> list:
     ]
 
 
+# Punctuation/brackets trimmed at WORD EDGES only (kept verbatim in stored GT).
+# Internal punctuation is preserved so Vietnamese decimal commas ("6,3") and
+# additive code groups ("330,334") keep their meaning.
+_EDGE_PUNCT = ".,;:!?…·•()[]{}\"'`«»“”‘’-/\\"
+
+
 def normalize_text(text: str) -> str:
-    """Normalize text for fuzzy matching: lowercase, strip, normalize spaces/punctuation."""
+    """Normalize text for comparison only: lowercase, collapse whitespace, and
+    strip punctuation/brackets at the edges of each word. The stored ground
+    truth and predictions keep their original punctuation untouched.
+    """
     import re
     text = text.lower().strip()
-    # Normalize whitespace
     text = re.sub(r'\s+', ' ', text)
-    # Remove trailing punctuation but keep internal punctuation
-    text = re.sub(r'[,;:.!?]+$', '', text).strip()
-    # Normalize multiple spaces around slashes
-    text = re.sub(r'\s*/\s*', '/', text)
-    return text
+    text = re.sub(r'\s*/\s*', '/', text)        # tidy bilingual "a / b" -> "a/b"
+    words = (w.strip(_EDGE_PUNCT) for w in text.split(' '))
+    return ' '.join(w for w in words if w).strip()
 
 
 def evaluate_detokenized(ground_truth_bio: list, predicted: list) -> dict:

@@ -33,8 +33,35 @@ def normalize_bbox(x_pct: float, y_pct: float, w_pct: float, h_pct: float) -> tu
 
 
 def sort_reading_order(tokens: list[dict]) -> list[dict]:
-    """Group into row buckets (10-unit y bins) then sort by x within each row."""
-    return sorted(tokens, key=lambda t: (round(t["bbox"][1] / 10) * 10, t["bbox"][0]))
+    """Reading-order sort via adaptive line clustering, then left-to-right.
+
+    Tokens are grouped into lines by vertical center with a tolerance derived
+    from the median token height (robust to per-token y jitter and to lines a
+    fixed-width bin would wrongly merge or split). Within a line, tokens are
+    sorted by x; lines are emitted top to bottom.
+    """
+    if not tokens:
+        return tokens
+
+    import statistics
+
+    heights = [t["bbox"][3] - t["bbox"][1] for t in tokens]
+    tol = max(1.0, statistics.median(heights) * 0.6)
+
+    lines: list[dict] = []  # each: {"y": running_center, "items": [...]}
+    for t in sorted(tokens, key=lambda t: (t["bbox"][1] + t["bbox"][3]) / 2):
+        yc = (t["bbox"][1] + t["bbox"][3]) / 2
+        if lines and abs(yc - lines[-1]["y"]) <= tol:
+            line = lines[-1]
+            line["items"].append(t)
+            line["y"] = (line["y"] * (len(line["items"]) - 1) + yc) / len(line["items"])
+        else:
+            lines.append({"y": yc, "items": [t]})
+
+    ordered: list[dict] = []
+    for line in lines:
+        ordered.extend(sorted(line["items"], key=lambda t: t["bbox"][0]))
+    return ordered
 
 
 def autofix_bio(tags: list[str]) -> list[str]:

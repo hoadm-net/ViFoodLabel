@@ -9,9 +9,10 @@ Use this section to understand what ViFoodLabel contains and how it is evaluated
 | File | Description |
 |---|---|
 | [motivation.md](motivation.md) | Why ViFoodLabel exists: research and practical motivation |
-| [dataset-overview.md](dataset-overview.md) | Dataset scope, format, and high-level properties |
+| [dataset-overview.md](dataset-overview.md) | Dataset scope, format, per-image record, and metadata |
 | [dataset-statistics.md](dataset-statistics.md) | Split sizes and distribution summaries |
 | [benchmark-tasks.md](benchmark-tasks.md) | SER/RE/End-to-End task definitions |
+| [task3-kie-record.md](task3-kie-record.md) | Task 3 record schema, ground-truth construction, and evaluation protocol |
 
 ## 2) Annotation
 

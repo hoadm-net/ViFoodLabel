@@ -20,8 +20,18 @@ Since the primary goal of this research is to provide a high-quality, diverse Vi
 
 According to **UniKIE-Bench** (2026, benchmarking 15 SOTA MLLMs on document KIE), current MLLMs still suffer *"substantial performance degradation under diverse schema definitions, long-tail key fields, and complex layouts"* — exactly the conditions food labels present (multi-row nutrition tables, long-tail additive codes, dense layouts). Tier C is mandatory to demonstrate that the dataset remains challenging for SOTA 2026 — not solvable by a single prompt.
 
-7. **One closed-source MLLM** (GPT-5) — zero-shot prompt evaluation using entity schema.
-8. **One open-weight MLLM** (Qwen3-VL) — required for reproducibility (Q1 reviewers typically mandate this, not just closed APIs).
+7. **Closed-source MLLM — GPT-5.4-mini** (OpenAI API) — zero-shot prompt evaluation.
+8. **Open-weight MLLM — Qwen3-VL-235B-A22B-Instruct** (via OpenRouter) — required for reproducibility (Q1 reviewers typically mandate this, not just closed APIs).
+
+Both models receive the label image only and must return the Task 3 structured
+JSON record (image → JSON, no intermediate supervision). They are scored with the
+field-level token-overlap protocol described in [benchmark-tasks.md](benchmark-tasks.md)
+against the human-reviewed ground truth (see [task3-kie-record.md](task3-kie-record.md)).
+The runner is `scripts/tier_c_eval.py` (`--model gpt|qwen|both`); both models share
+the same image sample and the same scorer, with retry-on-empty for transient API
+failures. To avoid evaluation leakage, neither evaluated model is used to build or
+quality-check the ground truth — a third model (Gemini, text-only) only triages
+which records a human should review.
 
 **Related observation**: A bilingual (English–Arabic) nutrition-extraction study from food labels using GPT-4V/4o/Gemini showed strong English performance but significant degradation on non-Latin-script languages before post-processing — a similar pattern is expected for Vietnamese diacritics and will be validated experimentally here.
 

@@ -13,8 +13,12 @@ data/label_studio/*
 data/raw/*
 data/thumbnail/*
 data/processed/*
+data/tier_c_results/
 !data/**/.gitkeep
 !data/README.md
+
+# API keys / secrets
+.env
 
 # Model checkpoints / training artifacts
 checkpoints/

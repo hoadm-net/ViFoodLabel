@@ -18,3 +18,8 @@ python-Levenshtein>=0.25
 # Dataset management
 gdown>=4.7                          # Google Drive downloads
 huggingface-hub>=0.23               # HuggingFace Hub integration
+
+# Tier C zero-shot MLLM evaluation (scripts/tier_c_eval.py)
+openai>=2.44                        # GPT-5.4-mini via OpenAI API
+openrouter>=0.10                    # Qwen3-VL via OpenRouter API
+python-dotenv>=1.0                  # load API keys from .env

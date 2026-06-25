@@ -4,17 +4,23 @@ Since the primary goal of this research is to provide a high-quality, diverse Vi
 
 > **Update 2026-06-21** after literature review: baselines are organized into 4 tiers (A–D) to be competitive for a Q1/Scopus 2026 target journal. References are listed in Section 6.
 
+All Tier A/B baselines are token-classification (SER) models sharing one data
+loader, label set, metric, and a sliding-window chunking + prediction-scatter
+layer (`scripts/baselines/baseline_common.py`) so that long labels are never
+truncated and the comparison across models is fair. Each model has its own
+training script under `scripts/baselines/`.
+
 ## Tier A — Supervised Text/Layout Baselines
 
-1. **PhoBERT (Text-only)**: Vietnamese-specialized language model. Input is text-only (assuming perfect OCR / ground-truth transcriptions).
-2. **XLM-RoBERTa (Text-only)**: Multilingual language model, handles Vietnamese well.
-3. **LayoutLMv3 — No Visual (Text + Layout)**: Microsoft's multimodal model with the visual segment disabled. Uses Vietnamese text + bounding boxes (2D spatial coordinates) to learn label layout structure.
-4. **LayoutLMv3 — Visual (Text + Layout + Image)**: Complete multimodal version with text, bounding boxes, and cropped image features. Allows evaluation of whether label background/visual cues provide signal or noise.
+1. **PhoBERT (Text-only)** — `01_phobert.py`. Vietnamese-specialized language model. Input is text-only (assuming perfect OCR / ground-truth transcriptions). Its ~256 position limit is handled by chunking long labels rather than truncating.
+2. **XLM-RoBERTa (Text-only)** — `02_xlmr.py`. Multilingual language model, handles Vietnamese well.
+3. **LayoutLMv3 — No Visual (Text + Layout)** — `03_layoutlmv3_no_visual.py`. Microsoft's multimodal model with the visual segment disabled. Uses Vietnamese text + bounding boxes (2D spatial coordinates) to learn label layout structure.
+4. **LayoutLMv3 — Visual (Text + Layout + Image)** — `04_layoutlmv3_visual.py`. Complete multimodal version with text, bounding boxes, and cropped image features. Allows evaluation of whether label background/visual cues provide signal or noise.
 
 ## Tier B — Next-Generation Layout-Aware Models
 
-5. **LiLT (Language-Independent Layout Transformer)**: Designed to pair with any RoBERTa-style backbone. Pairs naturally with PhoBERT for Vietnamese without requiring a new layout pretraining from scratch.
-6. **BROS**: Pretrained on text + layout without requiring images. Complements Tier A for layout-only evaluation.
+5. **LiLT (Language-Independent Layout Transformer)** — `05_lilt.py`. LiLT decouples the layout stream from the text encoder, but its released checkpoints bake in a specific text encoder; we use **`lilt-infoxlm-base`**, the multilingual release (InfoXLM / XLM-R vocabulary) that covers Vietnamese, rather than re-pretraining a PhoBERT-paired variant.
+6. **BROS** — `06_bros.py`. Text + layout, no image. Only an English checkpoint (`bros-base-uncased`) exists; it is run as-is on Vietnamese (its uncased tokenizer strips diacritics), included as a published-baseline reference point. The script restores the checkpoint's pretrained spatial-projection weight, which a parameter-name change in recent `transformers` would otherwise leave uninitialized.
 
 ## Tier C — Multimodal LLM Zero-Shot (No Fine-tuning)
 
@@ -37,9 +43,9 @@ which records a human should review.
 
 ## Tier D — Proposed Contribution (Vietnamese-Specific Model)
 
-9. **Model-based Relation Extraction**: A lightweight typed-link predictor (`src/relation_model.py`, inspired by GLiNER-Relex / Parallel Pointer Networks) that predicts `HAS_VALUE` link probability from entity-pair embeddings, replacing the geometric heuristic baseline in `src/relation_extractor.py`. This is the paper's methodological contribution — measuring Relation-F1 delta between the two approaches.
+9. **Model-based Relation Extraction**: A lightweight typed-link predictor (`src/relation_model.py`, inspired by GLiNER-Relex / Parallel Pointer Networks) that predicts `HAS_VALUE` link probability from entity-pair embeddings (frozen PhoBERT text encoding + relative-position/box geometry, scored by a small MLP head), replacing the geometric heuristic baseline in `src/relation_extractor.py`. This is the paper's methodological contribution — measuring the Relation-F1 delta between the two approaches. The training/evaluation CLI (`scripts/baselines/07_relation_model.py`) scores both the learned model and the heuristic on the same Task 2 (RE) protocol for a direct comparison.
 
-> **Decision (2026-06-24)**: dropped the generative seq2seq (Donut) baseline for Task 3. End-to-End KIE is evaluated via the Tier C zero-shot MLLMs (image → JSON directly) instead — matches the actual paper outline (Section 5.2 lists only text-only / layout-aware / zero-shot MLLM baseline categories) and avoids committing to an extra heavyweight training pipeline while Tier A–D are still scaffolds. Donut/UDOP/OmniParser remain cited in Related Work as motivation for the task design only, not as a baseline to train.
+> **Decision (2026-06-24)**: dropped the generative seq2seq (Donut) baseline for Task 3. End-to-End KIE is evaluated via the Tier C zero-shot MLLMs (image → JSON directly) instead — matches the actual paper outline (Section 5.2 lists only text-only / layout-aware / zero-shot MLLM baseline categories) and avoids committing to an extra heavyweight training pipeline. Donut/UDOP/OmniParser remain cited in Related Work as motivation for the task design only, not as a baseline to train.
 
 ## Module Reference for Task 3 Reproduction (Benchmark Use Only)
 

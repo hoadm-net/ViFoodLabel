@@ -28,7 +28,7 @@ We introduce **ViFoodLabel**, the first large-scale dataset for **Key Informatio
 This repository provides:
 
 1. **The dataset**: raw images + Label Studio annotation exports + HuggingFace-ready processed splits.
-2. **Baseline models**: training scripts for supervised text/layout baselines (PhoBERT, XLM-R, LayoutLMv3) and zero-shot MLLM evaluation.
+2. **Baseline models**: training scripts for supervised text/layout baselines (Tier A: PhoBERT, XLM-R, LayoutLMv3; Tier B: LiLT, BROS) and zero-shot MLLM evaluation (Tier C).
 3. **Our proposed model**: a learned relation-extraction module (`src/relation_model.py`) for the `HAS_VALUE` link, benchmarked against the geometric heuristic baseline.
 
 There is **no deployment/serving layer** here (no API, no packaged inference
@@ -102,18 +102,24 @@ python scripts/preprocessing/check_data.py \
 ### 4. Train Baselines (Once Data is Ready)
 
 ```bash
-# PhoBERT (text-only)
-python scripts/baselines/01_phobert.py \
-    --train data/processed/train.json \
-    --val data/processed/val.json \
-    --epochs 20
+# Tier A — PhoBERT (text-only), XLM-R (text-only),
+#          LayoutLMv3 (text+layout, with/without visual)
+python scripts/baselines/01_phobert.py --train data/processed/train.json --val data/processed/val.json --epochs 20
+python scripts/baselines/02_xlmr.py    --train data/processed/train.json --val data/processed/val.json --epochs 20
+python scripts/baselines/03_layoutlmv3_no_visual.py --train data/processed/train.json --val data/processed/val.json --epochs 30
+python scripts/baselines/04_layoutlmv3_visual.py    --train data/processed/train.json --val data/processed/val.json --images data/raw --epochs 30
 
-# LayoutLMv3 (text + layout, no visual)
-python scripts/baselines/03_layoutlmv3_no_visual.py \
-    --train data/processed/train.json \
-    --val data/processed/val.json \
-    --epochs 30
+# Tier B — LiLT, BROS (text+layout)
+python scripts/baselines/05_lilt.py --train data/processed/train.json --val data/processed/val.json --epochs 30
+python scripts/baselines/06_bros.py --train data/processed/train.json --val data/processed/val.json --epochs 30
+
+# Tier D — proposed relation model vs. geometric heuristic (Task 2 / RE)
+python scripts/baselines/07_relation_model.py --train data/processed/train.json --val data/processed/val.json --epochs 20
 ```
+
+All token-classification baselines share one data loader, label set, metric, and
+a sliding-window chunking layer (`scripts/baselines/baseline_common.py`) so that
+long labels are never truncated and models are compared on equal footing.
 
 ### 5. Evaluate
 
@@ -124,7 +130,12 @@ python scripts/evaluate.py \
     --task ser  # or: re, kie
 ```
 
-> **Note**: All scripts are currently **scaffolds** — CLI args and signatures match the spec in `docs/`, but core logic raises `NotImplementedError` pending implementation.
+> **Note**: The Tier A/B/D baseline + proposed-model training/eval scripts
+> (`scripts/baselines/`), the preprocessing pipeline, and `src/metrics.py` are
+> implemented and runnable. The end-to-end Task 3 cascade wrappers in `src/`
+> (`ocr_engine.py`, `ner_engine.py`, `json_parser.py`, `heuristics.py`) remain
+> scaffolds (`NotImplementedError`) — Task 3 is currently evaluated via the
+> Tier C zero-shot MLLM runner instead (see [docs/baseline-models.md](docs/baseline-models.md)).
 
 **Full workflow guide**: [scripts/preprocessing/README.md](scripts/preprocessing/README.md)  
 **Dataset download**: [data/DOWNLOAD.md](data/DOWNLOAD.md)
@@ -147,13 +158,14 @@ Key locations:
 
 ### Baselines & Proposed Model
 
-- Tier A–B supervised baselines: text-only (PhoBERT, XLM-R) and layout-aware (LayoutLMv3).
-- Tier C zero-shot MLLM evaluation (planned).
-- Tier D proposed model: learned `HAS_VALUE` relation extraction.
+- Tier A supervised baselines: text-only (PhoBERT, XLM-R) and layout-aware (LayoutLMv3, with/without visual).
+- Tier B next-gen layout-aware baselines: LiLT, BROS.
+- Tier C zero-shot MLLM evaluation: closed-source + open-weight (image → JSON).
+- Tier D proposed model: learned `HAS_VALUE` relation extraction vs. geometric heuristic.
 - Evaluation: token/entity/relation/field F1.
 
 Key locations:
-- [scripts/baselines/](scripts/baselines/)
+- [scripts/baselines/](scripts/baselines/) — `01`–`07` per-model scripts + shared `baseline_common.py`
 - [src/relation_extractor.py](src/relation_extractor.py) — heuristic baseline
 - [src/relation_model.py](src/relation_model.py) — proposed model
 - [src/metrics.py](src/metrics.py)

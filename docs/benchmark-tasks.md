@@ -14,7 +14,9 @@ ViFoodLabel supports three tasks of increasing difficulty.
 | Output | BIO label sequence |
 | Evaluation | Token-level F1, Entity-level F1 (span-exact match) |
 
-**Token-level F1** measures per-token classification accuracy.  
+**Token-level F1** is the micro-averaged F1 over per-token BIO tag predictions,
+computed over entity tokens only (the majority `O` class is excluded so the score
+reflects entity tagging rather than collapsing to overall token accuracy).  
 **Entity-level F1** counts an entity as correct only if both the span boundaries and the entity type match exactly (no partial credit).
 
 ---

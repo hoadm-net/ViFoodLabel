@@ -62,6 +62,7 @@ python label_studio_preann.py \
 - `--end`: Last image index (auto-detects if omitted)
 - `--output`: Save tasks.json path (default: `tasks.json`)
 - `--image-base-url`: Base URL the images are served from (default: `http://103.159.52.8/images`). Label Studio's `data.image` field must be a URL it can fetch, not a local filesystem path — this script builds it as `{base_url}/{filename}`.
+- `--thumbnail-base-url`: Base URL the thumbnails are served from (default: `http://103.159.52.8/images/thumbnail`). Written to `data.thumbnail` — same filename, just a different base URL.
 
 **Process:**
 1. Detects text regions using **doctr** (scene text detection)

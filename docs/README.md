@@ -1,22 +1,23 @@
 # Documentation Overview
 
-This documentation is organized into focused sections to avoid duplicated content and make navigation easier.
+This documentation describes the ViFoodLabel dataset: what it contains, how it
+was built, and how every file and field is structured. It is written for a
+**data article** — it covers the data, not model training or deployment.
 
 ## 1) Dataset Description
 
-Use this section to understand what ViFoodLabel contains and how it is evaluated.
-
 | File | Description |
 |---|---|
-| [motivation.md](motivation.md) | Why ViFoodLabel exists: research and practical motivation |
-| [dataset-overview.md](dataset-overview.md) | Dataset scope, format, per-image record, and metadata |
-| [dataset-statistics.md](dataset-statistics.md) | Split sizes and distribution summaries |
-| [benchmark-tasks.md](benchmark-tasks.md) | SER/RE/End-to-End task definitions |
-| [task3-kie-record.md](task3-kie-record.md) | Task 3 record schema, ground-truth construction, and evaluation protocol |
+| [motivation.md](motivation.md) | Background, regulatory context, and the gap the dataset fills |
+| [dataset-overview.md](dataset-overview.md) | Scope, format, per-image record, and metadata |
+| [dataset-statistics.md](dataset-statistics.md) | Split sizes, token/entity/relation distributions, category breakdown |
+| [data-dictionary.md](data-dictionary.md) | Every file and every field, with values and types |
+| [benchmark-tasks.md](benchmark-tasks.md) | Intended uses: the tasks the data supports (SER / RE / KIE) |
+| [task3-kie-record.md](task3-kie-record.md) | KIE record schema, ground-truth construction, and QC |
 
-## 2) Annotation
+## 2) Annotation (Methods)
 
-Use this section to annotate and quality-check labels consistently.
+How labels were produced and quality-checked.
 
 | Folder/File | Description |
 |---|---|
@@ -27,22 +28,14 @@ Use this section to annotate and quality-check labels consistently.
 | [annotation/relation-schema.md](annotation/relation-schema.md) | Relation schema |
 | [annotation/annotation-pipeline.md](annotation/annotation-pipeline.md) | Annotation workflow |
 
-## 3) Baselines and Proposed Model
+## 3) License
 
 | File | Description |
 |---|---|
-| [baseline-models.md](baseline-models.md) | Baseline tiers (A–D) and result summaries, incl. the proposed relation-extraction model |
+| [DATA_LICENSE.md](DATA_LICENSE.md) | CC BY-NC 4.0 text (dataset license) |
 
-## 4) Technical Notes
+## Scope
 
-| File | Description |
-|---|---|
-| [notes/technical-runtime-notes.md](notes/technical-runtime-notes.md) | Runtime implementation notes (PhoBERT/Pillow/OCR profiling) |
-
-## Out of Scope
-
-This repository covers the **dataset** (images + Label Studio annotations),
-**baseline models**, and the **proposed relation-extraction model**. It does
-not include a deployment/serving layer (no API, no packaged inference
-service) — see [benchmark-tasks.md](benchmark-tasks.md) for how models are
-expected to be run and evaluated instead.
+This repository covers the **dataset** (images + annotations + derived records)
+and the tooling to build, validate, and describe it. It does not include
+baseline models, benchmark experiments, or a serving layer.

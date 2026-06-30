@@ -1,57 +1,104 @@
 # Dataset Statistics
 
-> **Feasibility study** (v1 — 134 annotated images). Raw image collection is complete at **550 images** (target reached, see `plan/phases.md`); annotation of the remaining ~416 images is in progress. Statistics below will be updated as annotation progresses toward the full dataset.
+> **Current annotated set: 416 images** (raw collection complete at 560; annotation
+> of the remaining images is in progress). All numbers below are produced by
+> `scripts/dataset/compute_statistics.py` from `data/processed/dataset_meta.json`
+> and will be refreshed when annotation reaches the full target. Splits come from
+> `scripts/dataset/split_dataset.py` (`data/processed/splits.json`).
 
 ## Split Summary
 
+Stratified **80/10/10** train/dev/test (seed 42), stratified jointly by
+`product_category`, `background_color`, and `material`.
+
 | Split | Images | Tokens | Relations |
 |---|---|---|---|
-| Train | 107 | 27,715 | 627 |
-| Validation | 27 | 7,532 | 190 |
-| Test | — | — | — |
-| **Total (so far)** | **134** | **35,247** | **817** |
+| Train | 333 | 89,949 | 2,389 |
+| Dev | 42 | 12,454 | 314 |
+| Test | 41 | 11,276 | 295 |
+| **Total** | **416** | **113,679** | **2,998** |
 
-**Split ratio**: 80% train / 20% validation (feasibility phase). Final dataset will use an 80/10/10 split.
+**Total entities (spans)**: 17,961.
 
-**Token length**: min 48, max 671, mean ~265 tokens/image.
+**Token length per image**: min 41, median 265, mean 273.3, max 760 (p90 407,
+std 106.3).
 
-## Entity Distribution (train + validation)
+## Entity Distribution
 
 | Entity Type | Spans | % of total |
 |---|---|---|
-| INGREDIENT | 1,829 | 25.6% |
-| ADDITIVE | 1,469 | 20.6% |
-| WARNING | 1,054 | 14.8% |
-| NUTRITION_VALUE | 991 | 13.9% |
-| NUTRITION_NAME | 988 | 13.8% |
-| MANUFACTURER | 364 | 5.1% |
-| ORIGIN | 136 | 1.9% |
-| PRODUCT_NAME | 189 | 2.6% |
-| NET_WEIGHT | 68 | 1.0% |
-| EXPIRY_DATE | 33 | 0.5% |
-| MFG_DATE | 22 | 0.3% |
-| **Total** | **7,143** | 100% |
+| INGREDIENT | 4,717 | 26.3% |
+| NUTRITION_VALUE | 3,269 | 18.2% |
+| ADDITIVE | 3,221 | 17.9% |
+| NUTRITION_NAME | 3,199 | 17.8% |
+| WARNING | 1,813 | 10.1% |
+| MANUFACTURER | 690 | 3.8% |
+| PRODUCT_NAME | 350 | 1.9% |
+| ORIGIN | 328 | 1.8% |
+| NET_WEIGHT | 192 | 1.1% |
+| EXPIRY_DATE | 102 | 0.6% |
+| MFG_DATE | 80 | 0.4% |
+| **Total** | **17,961** | 100% |
 
-⚠️ `MFG_DATE` and `EXPIRY_DATE` are intentionally under-represented in this batch — many labels were photographed at angles that cropped the date area. Labels will be targeted for these entities in future collection rounds.
+The distribution is strongly imbalanced: the four ingredient/nutrition types plus
+`WARNING` account for ~90% of all spans, while the date and net-weight fields form
+a long tail (each < 2%). `MFG_DATE` and `EXPIRY_DATE` are the rarest — many labels
+were photographed at angles that cropped or obscured the date area. This imbalance
+is a property of real food labels and is noted as a usage caveat rather than
+corrected.
 
-## Inter-Annotator Agreement (IAA)
+## Relation Distribution (`HAS_VALUE`)
 
 | Metric | Value |
 |---|---|
-| Cohen's κ (token-level) | — |
-| Entity-level F1 (pairwise) | — |
-| Relation F1 (pairwise) | — |
+| Total relations | 2,998 |
+| Per image (median / mean / max) | 7 / 7.2 / 59 |
+| Images with no nutrition table (0 relations) | 74 |
 
-IAA measurement pending double-annotation pass (planned for Phase 3 batch 2).
+Relations link `NUTRITION_NAME` → `NUTRITION_VALUE`, one per nutrition row. Images
+with zero relations are mostly products without a nutrition facts table.
 
-## Product Category Distribution
+## Product-Category Distribution
 
 | Category | Images | % |
 |---|---|---|
-| Confectionery | — | — |
-| Beverages | — | — |
-| Instant foods | — | — |
-| Snacks | — | — |
-| Condiments | — | — |
-| Dairy | — | — |
-| Other | — | — |
+| beverage | 132 | 31.7% |
+| cake | 93 | 22.4% |
+| dried_food | 68 | 16.3% |
+| snack | 42 | 10.1% |
+| seasoning | 40 | 9.6% |
+| candy | 30 | 7.2% |
+| other | 11 | 2.6% |
+
+## Packaging Metadata
+
+Auxiliary descriptive attributes (proposed by a vision model, corrected by an
+annotator); used for stratified splitting, **not** extraction targets.
+
+| `background_color` | Images | % | | `material` | Images | % |
+|---|---|---|---|---|---|---|
+| white | 125 | 30.0% | | paper | 173 | 41.6% |
+| yellow | 99 | 23.8% | | foil | 109 | 26.2% |
+| red | 66 | 15.9% | | plastic | 97 | 23.3% |
+| green | 48 | 11.5% | | can_bottle | 29 | 7.0% |
+| blue | 43 | 10.3% | | other | 8 | 1.9% |
+| other | 35 | 8.4% | | | | |
+
+## Inter-Annotator Agreement (IAA)
+
+A subset is double-annotated by two independent annotators and three agreement
+levels are reported: token-level Cohen's κ (BIO), entity-level F1 (exact span +
+type), and relation-level F1. IAA is measured separately and will be filled in
+here once available.
+
+| Metric | Value |
+|---|---|
+| Cohen's κ (token-level BIO) | — |
+| Entity-level F1 (pairwise) | — |
+| Relation-level F1 (pairwise) | — |
+
+## Figures
+
+`scripts/dataset/compute_statistics.py` also writes histograms/bar charts to
+`data/processed/figures/`: token-length distribution, entity distribution,
+relation-count distribution, and product-category distribution.

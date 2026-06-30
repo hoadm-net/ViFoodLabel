@@ -1,204 +1,112 @@
 # ViFoodLabel: A Vietnamese Food Product Label Dataset for Key Information Extraction
 
-<p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/Task-Key%20Information%20Extraction-blue"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Language-Vietnamese-red"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Domain-Food%20Product%20Labels-green"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Annotation-BIO%20NER%20%2B%20Layout-orange"/></a>
-  <a href="docs/DATA_LICENSE.md"><img src="https://img.shields.io/badge/Dataset%20License-CC%20BY--NC%204.0-lightgrey"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/Code%20License-MIT-yellow"/></a>
-</p>
+![Type: Data Article](https://img.shields.io/badge/Type-Data%20Article-blue)
+![Language: Vietnamese](https://img.shields.io/badge/Language-Vietnamese-red)
+![Domain: Food Product Labels](https://img.shields.io/badge/Domain-Food%20Product%20Labels-green)
+![Annotation: BIO NER + Layout + Relations](https://img.shields.io/badge/Annotation-BIO%20NER%20%2B%20Layout%20%2B%20Relations-orange)
+![Dataset License: CC BY-NC 4.0](https://img.shields.io/badge/Dataset%20License-CC%20BY--NC%204.0-lightgrey)
+![Code License: MIT](https://img.shields.io/badge/Code%20License-MIT-yellow)
 
 ---
 
-## Abstract
+## Overview
 
-We introduce **ViFoodLabel**, the first large-scale dataset for **Key Information Extraction (KIE)** from Vietnamese food product labels. Food product labels contain heterogeneous, multi-region text with complex layout, non-standard typography, and domain-specific vocabulary — making them a challenging testbed for visually-rich document understanding (VrDU) models — with particular relevance to food categories (confectionery, dairy, snacks, beverages) heavily consumed by children, where accurate allergen and additive extraction has direct child-safety value. ViFoodLabel provides pixel-accurate bounding box annotations, word-level BIO entity tags, and cross-entity relational links across **11 semantic entity types** including product name, ingredients, additives, nutritional information, manufacturer, origin, net weight, dates, and warnings. Each annotated token is paired with its transcription and spatial coordinates, enabling layout-aware model training. We benchmark a tiered set of baselines — from text-only and layout-aware transformers (PhoBERT, XLM-R, LayoutLMv3, LiLT, BROS) to zero-shot multimodal LLMs (closed and open-weight) — and propose a lightweight Vietnamese-specific relation-extraction module, reporting results under standard KIE evaluation protocols. ViFoodLabel aims to serve as a foundational resource for food safety information systems, regulatory compliance automation, and multilingual document AI research.
+**ViFoodLabel** is a layout-aware dataset for **Key Information Extraction (KIE)** from Vietnamese food product labels. Each label image is annotated at the word level with a tight bounding box, a transcription, a BIO entity tag (one of **11 semantic types**), and — for nutrition rows — a `HAS_VALUE` relation linking each nutrient name to its value. From these word-level annotations a clean, field-grouped **per-image KIE record** is assembled (product name, ingredients, additives, nutrition table, manufacturer, origin, net weight, dates, warnings).
+
+Vietnamese food labels are a demanding source for visually-rich document understanding: dense multi-column ingredient and nutrition layouts, diacritics and tone marks that OCR frequently misreads, non-standard typography, and domain vocabulary (Codex additive codes, regulatory terminology). The dataset is released to support research on document AI for Vietnamese and other under-resourced languages, and on food-safety information systems (allergen, additive, and age-warning extraction).
+
+This repository is a **data article companion**: it holds the dataset, the annotation specifications, and the open-source tooling used to build, validate, and describe it. It does **not** contain model training, benchmarking, or a serving layer.
+
+> **Status (2026-06-30):** 560 raw label images collected; **416 images annotated** and processed so far. Statistics, splits, and the data dictionary below describe the current annotated set and will be refreshed when annotation reaches the full target. See [docs/dataset-statistics.md](docs/dataset-statistics.md).
 
 ---
 
-## Dataset & Baseline Status
+## Specifications
 
-**550 Vietnamese food product label images** have been collected. **134 images** are annotated and ready for baseline training. Implementation of preprocessing, training, and evaluation scripts is underway (see `src/` and `scripts/` for current scaffold status and `TODO` items).
+| | |
+|---|---|
+| **Subject** | Computer Science — Artificial Intelligence; Document AI / NLP |
+| **Specific subject area** | Layout-aware Key Information Extraction from Vietnamese food product label images |
+| **Data type** | Images (JPEG); annotations (JSON); derived structured records (JSON) |
+| **How data were acquired** | Self-photographed from physical products in Vietnamese supermarkets and convenience stores; annotated in [Label Studio](https://labelstud.io/) |
+| **Data format** | Raw and processed (token-level BIO + bounding boxes + relations; per-image KIE records) |
+| **Annotation** | Word-level bounding box + transcription + BIO tag (11 entity types) + `HAS_VALUE` relation |
+| **Coordinate system** | Normalized to `[0, 1000]` on both axes (LayoutLM-compatible) |
+| **Data source location** | Vietnam |
+| **Data accessibility** | Images + annotations released on Mendeley Data (link added on publication); tooling in this repository |
+| **License** | Dataset: CC BY-NC 4.0 · Code: MIT |
 
 ---
 
-## Repository Scope
+## Value of the Data
 
-This repository provides:
-
-1. **The dataset**: raw images + Label Studio annotation exports + HuggingFace-ready processed splits.
-2. **Baseline models**: training scripts for supervised text/layout baselines (Tier A: PhoBERT, XLM-R, LayoutLMv3; Tier B: LiLT, BROS) and zero-shot MLLM evaluation (Tier C).
-3. **Our proposed model**: a learned relation-extraction module (`src/relation_model.py`) for the `HAS_VALUE` link, benchmarked against the geometric heuristic baseline.
-
-There is **no deployment/serving layer** here (no API, no packaged inference
-service) — `src/` modules other than the baselines/proposed model exist only
-to reproduce the Task 3 (End-to-End KIE) benchmark locally for evaluation.
+- **First layout-aware KIE dataset for Vietnamese food labels.** Existing KIE datasets (FUNSD, CORD, SROIE, DocVQA) are English and cover forms or receipts; ViFoodLabel fills a language and domain gap with pixel-accurate boxes, BIO spans, and nutrition relations.
+- **Multiple levels of supervision in one resource.** Word-level tokens/boxes/tags, entity spans, `HAS_VALUE` relations, and assembled per-image field records support semantic entity recognition, relation extraction, and end-to-end information extraction without further annotation.
+- **Faithful, real-world transcriptions.** Text is stored verbatim (original casing, diacritics, on-label OCR/spelling artifacts, printed `%DV`), so the data is reusable for OCR, normalization, and robustness studies, not only clean extraction.
+- **Direct relevance to food safety.** Structured ingredient, additive, allergen, and warning fields enable compliance checking and child-safety screening of product categories heavily consumed by children (confectionery, dairy, snacks, beverages).
+- **Reusable beyond Vietnamese.** Normalized `[0,1000]` coordinates and a documented schema make it a drop-in benchmark for multilingual, layout-aware document models.
 
 ---
 
 ## Documentation
 
-Full documentation is in the [`docs/`](docs/) folder:
+Full documentation is in [`docs/`](docs/):
 
 | Document | Description |
 |---|---|
 | [docs/README.md](docs/README.md) | Documentation index |
-| [docs/motivation.md](docs/motivation.md) | Research gaps and regulatory context |
-| [docs/dataset-overview.md](docs/dataset-overview.md) | Dataset properties, format, product categories |
-| [docs/annotation/entity-schema.md](docs/annotation/entity-schema.md) | 11 entity types, BIO rules |
-| [docs/annotation/relation-schema.md](docs/annotation/relation-schema.md) | `HAS_VALUE` relation annotation guide |
-| [docs/annotation/annotation-pipeline.md](docs/annotation/annotation-pipeline.md) | Annotation workflow, coordinate normalization |
-| [docs/annotation/annotation.md](docs/annotation/annotation.md) | Annotation guideline (English) |
-| [docs/annotation/annotation-vi.md](docs/annotation/annotation-vi.md) | Annotation guideline (Vietnamese) |
-| [docs/notes/technical-runtime-notes.md](docs/notes/technical-runtime-notes.md) | Runtime implementation notes |
-| [docs/dataset-statistics.md](docs/dataset-statistics.md) | Split sizes, entity distribution, IAA |
-| [docs/benchmark-tasks.md](docs/benchmark-tasks.md) | SER, RE, and End-to-End KIE task definitions |
-| [docs/baseline-models.md](docs/baseline-models.md) | Baseline tiers (A–D) and result tables |
-
----
-
-## Quick Start
-
-### 1. Setup Environment
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Download Dataset Images
-
-Images are hosted on Google Drive (to keep repo lightweight).
-
-```bash
-# Automatic download and extract
-python scripts/download_dataset.py
-
-# Or manual: see data/DOWNLOAD.md
-```
-
-### 3. Preprocessing Pipeline
-
-```bash
-# Step 1: Generate Label Studio pre-annotations (OCR)
-python scripts/preprocessing/label_studio_preann.py \
-    --folder data/raw \
-    --output data/label_studio/tasks.json
-
-# Step 2: (Upload tasks.json to Label Studio, annotate, export as data.json)
-
-# Step 3: Convert Label Studio → HuggingFace NER format
-python scripts/preprocessing/convert_ls_to_ner.py \
-    --input  data/label_studio/data.json \
-    --output data/processed/ \
-    --split  0.8 \
-    --autofix-bio
-
-# Step 4: Validate data quality
-python scripts/preprocessing/check_data.py \
-    --input data/processed/train.json data/processed/val.json
-```
-
-### 4. Train Baselines (Once Data is Ready)
-
-```bash
-# Tier A — PhoBERT (text-only), XLM-R (text-only),
-#          LayoutLMv3 (text+layout, with/without visual)
-python scripts/baselines/01_phobert.py --train data/processed/train.json --val data/processed/val.json --epochs 20
-python scripts/baselines/02_xlmr.py    --train data/processed/train.json --val data/processed/val.json --epochs 20
-python scripts/baselines/03_layoutlmv3_no_visual.py --train data/processed/train.json --val data/processed/val.json --epochs 30
-python scripts/baselines/04_layoutlmv3_visual.py    --train data/processed/train.json --val data/processed/val.json --images data/raw --epochs 30
-
-# Tier B — LiLT, BROS (text+layout)
-python scripts/baselines/05_lilt.py --train data/processed/train.json --val data/processed/val.json --epochs 30
-python scripts/baselines/06_bros.py --train data/processed/train.json --val data/processed/val.json --epochs 30
-
-# Tier D — proposed relation model vs. geometric heuristic (Task 2 / RE)
-python scripts/baselines/07_relation_model.py --train data/processed/train.json --val data/processed/val.json --epochs 20
-```
-
-All token-classification baselines share one data loader, label set, metric, and
-a sliding-window chunking layer (`scripts/baselines/baseline_common.py`) so that
-long labels are never truncated and models are compared on equal footing.
-
-### 5. Evaluate
-
-```bash
-python scripts/evaluate.py \
-    --predictions results/predictions.json \
-    --ground-truth data/processed/val.json \
-    --task ser  # or: re, kie
-```
-
-> **Note**: The Tier A/B/D baseline + proposed-model training/eval scripts
-> (`scripts/baselines/`), the preprocessing pipeline, and `src/metrics.py` are
-> implemented and runnable. The end-to-end Task 3 cascade wrappers in `src/`
-> (`ocr_engine.py`, `ner_engine.py`, `json_parser.py`, `heuristics.py`) remain
-> scaffolds (`NotImplementedError`) — Task 3 is currently evaluated via the
-> Tier C zero-shot MLLM runner instead (see [docs/baseline-models.md](docs/baseline-models.md)).
-
-**Full workflow guide**: [scripts/preprocessing/README.md](scripts/preprocessing/README.md)  
-**Dataset download**: [data/DOWNLOAD.md](data/DOWNLOAD.md)
-
----
-
-## Key Locations
-
-### Dataset Tooling (main objective: dataset delivery)
-
-- Convert Label Studio annotations to model-ready format.
-- Validate label quality and BIO consistency.
-- Publish docs/specs for annotation and evaluation.
-
-Key locations:
-- [data/](data/)
-- [scripts/preprocessing/](scripts/preprocessing/)
-- [scripts/dataset/](scripts/dataset/)
-- [docs/](docs/)
-
-### Baselines & Proposed Model
-
-- Tier A supervised baselines: text-only (PhoBERT, XLM-R) and layout-aware (LayoutLMv3, with/without visual).
-- Tier B next-gen layout-aware baselines: LiLT, BROS.
-- Tier C zero-shot MLLM evaluation: closed-source + open-weight (image → JSON).
-- Tier D proposed model: learned `HAS_VALUE` relation extraction vs. geometric heuristic.
-- Evaluation: token/entity/relation/field F1.
-
-Key locations:
-- [scripts/baselines/](scripts/baselines/) — `01`–`07` per-model scripts + shared `baseline_common.py`
-- [src/relation_extractor.py](src/relation_extractor.py) — heuristic baseline
-- [src/relation_model.py](src/relation_model.py) — proposed model
-- [src/metrics.py](src/metrics.py)
-- [scripts/evaluate.py](scripts/evaluate.py)
+| [docs/motivation.md](docs/motivation.md) | Background, regulatory context, and the gap the dataset fills |
+| [docs/dataset-overview.md](docs/dataset-overview.md) | Dataset scope, format, per-image record, and metadata |
+| [docs/dataset-statistics.md](docs/dataset-statistics.md) | Split sizes, token/entity/relation distributions, category breakdown |
+| [docs/data-dictionary.md](docs/data-dictionary.md) | Every file and every field, with values and types |
+| [docs/benchmark-tasks.md](docs/benchmark-tasks.md) | Intended uses: the tasks the data supports (SER / RE / KIE) |
+| [docs/task3-kie-record.md](docs/task3-kie-record.md) | KIE record schema, ground-truth construction, and QC |
+| [docs/annotation/](docs/annotation/) | Annotation guidelines (EN/VI), entity & relation schemas, pipeline |
 
 ---
 
 ## File Structure
 
-```
+```text
 ViFoodLabel/
-├── data/
-│   ├── label_studio/   # Label Studio JSON exports
-│   ├── thumbnail/      # Resized preview images
-│   ├── raw/            # Original product label images
-│   └── processed/      # HuggingFace-ready splits (train/val/test)
-├── docs/                       # Full documentation
-│   ├── annotation/             # Annotation guides and schemas
-│   ├── plan/                   # Planning and milestone docs
-│   ├── notes/                  # Runtime implementation notes
-│   └── DATA_LICENSE.md         # CC BY-NC 4.0 text (dataset license)
+├── data/                       # (released separately on Mendeley Data)
+│   ├── images/                 # Original product label images (JPEG)
+│   ├── label_studio/           # Anonymized Label Studio annotation export
+│   └── processed/
+│       ├── dataset/            # Per-image KIE records (meta + structured fields)
+│       ├── dataset_meta.json   # Per-image descriptive metadata
+│       ├── splits.json         # Frozen train/dev/test ID lists (80/10/10)
+│       └── statistics.json     # Computed dataset statistics
+├── docs/                       # Dataset specifications, schemas, statistics
 ├── scripts/
-│   ├── dataset/        # Dataset publishing utilities (HF upload)
-│   ├── baselines/      # Baseline training scripts (Tier A)
-│   ├── preprocessing/  # Data conversion/validation utilities
-│   └── evaluate.py     # SER/RE/KIE evaluation entry point
-├── src/                 # OCR/NER/RE/JSON modules (benchmark reproduction)
-│   ├── relation_extractor.py  # heuristic HAS_VALUE baseline
-│   ├── relation_model.py      # proposed learned relation model
-│   └── metrics.py
-├── LICENSE              # MIT (code)
-├── requirements.txt
-└── README.md
+│   ├── preprocessing/          # Label Studio → token-level conversion & validation
+│   └── dataset/                # Splitting, statistics, anonymization, packaging
+├── LICENSE                     # MIT (code)
+└── requirements.txt
+```
+
+---
+
+## Reproducing the Derived Data
+
+```bash
+pip install -r requirements.txt
+
+# 1. Label Studio export -> token-level BIO + bounding boxes (coords -> [0,1000])
+python scripts/preprocessing/convert_ls_to_ner.py \
+    --input data/label_studio/data.json --output data/processed/ --autofix-bio
+
+# 2. Validate BIO consistency, bounding boxes, and relations
+python scripts/preprocessing/check_data.py \
+    --input data/processed/train.json data/processed/val.json
+
+# 3. Assemble per-image KIE records + descriptive metadata
+python scripts/build_task3_gt.py
+python scripts/build_dataset_meta.py
+
+# 4. Freeze the stratified 80/10/10 split and compute statistics
+python scripts/dataset/split_dataset.py
+python scripts/dataset/compute_statistics.py
 ```
 
 ---
@@ -206,10 +114,10 @@ ViFoodLabel/
 ## License
 
 - **Code** in `src/` and `scripts/` is licensed under [MIT](LICENSE).
-- The **ViFoodLabel dataset** (images + annotations, once released) is licensed under [CC BY-NC 4.0](docs/DATA_LICENSE.md) — non-commercial use, attribution required.
+- The **ViFoodLabel dataset** (images + annotations) is licensed under [CC BY-NC 4.0](docs/DATA_LICENSE.md) — non-commercial use, attribution required.
 
-**Citation**: Once the dataset paper is published, a BibTeX entry will be provided here.
+**Citation**: A BibTeX entry will be added here once the data article is published.
 
 ---
 
-<p align="center">Made with ❤️ for Vietnamese NLP and Food Safety Research</p>
+_Released for Vietnamese NLP and food-safety research._

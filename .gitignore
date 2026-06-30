@@ -8,14 +8,21 @@ venv/
 # Planning/progress (managed locally, not in repo)
 .plan/
 
-# Data (large/binary — published via HuggingFace Hub, not git history)
+# Data (large/binary — published via Mendeley Data, not git history)
 data/label_studio/*
 data/raw/*
 data/thumbnail/*
 data/processed/*
 data/tier_c_results/
+data/release/
 !data/**/.gitkeep
 !data/README.md
+
+# Private anonymization mapping (annotator ids — never publish)
+*.private.json
+
+# Working artifacts (local review lists, not repo content)
+data/face_review_worklist.txt
 
 # API keys / secrets
 .env

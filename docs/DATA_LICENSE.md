@@ -5,7 +5,7 @@ and all annotations in `data/label_studio/` and `data/processed/`) is licensed
 under the **Creative Commons Attribution-NonCommercial 4.0 International
 (CC BY-NC 4.0)** license.
 
-This is distinct from the **code** in `src/` and `scripts/`, which is
+This is distinct from the **code** in `scripts/`, which is
 licensed under [MIT](../LICENSE).
 
 ## Summary

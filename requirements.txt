@@ -1,26 +1,15 @@
-# Core ML
-torch>=2.1
-transformers>=4.40
-datasets>=2.19
-seqeval>=1.2.2
-scikit-learn>=1.4
-
-# Image preprocessing (scripts/preprocessing/)
+# OCR pre-annotation (scripts/preprocessing/)
+torch>=2.1                          # backend for doctr / vietocr
 Pillow>=10.0
-python-doctr>=0.8
-vietocr>=0.3.13
-opencv-python>=4.8
+python-doctr>=0.8                   # text detection
+vietocr>=0.3.13                     # Vietnamese text recognition
+opencv-python>=4.8                  # image prep (HEIC -> JPEG, thumbnails)
 
-# Post-processing heuristics (src/heuristics.py)
-thefuzz>=0.22
-python-Levenshtein>=0.25
+# Dataset construction, statistics, and release (scripts/, scripts/dataset/)
+matplotlib>=3.8                     # statistics figures (compute_statistics.py)
+gdown>=4.7                          # dataset image download
+huggingface-hub>=0.23               # dataset publishing utility
 
-# Dataset management
-gdown>=4.7                          # Google Drive downloads
-huggingface-hub>=0.23               # HuggingFace Hub integration
-matplotlib>=3.8                     # statistics figures (scripts/dataset/compute_statistics.py)
-
-# Tier C zero-shot MLLM evaluation (scripts/tier_c_eval.py)
-openai>=2.44                        # GPT-5.4-mini via OpenAI API
-openrouter>=0.10                    # Qwen3-VL via OpenRouter API
-python-dotenv>=1.0                  # load API keys from .env
+# LLM-assisted QC linter (scripts/task3_qc_lint.py)
+openrouter>=0.10                    # text linter via OpenRouter
+python-dotenv>=1.0                  # load API key from .env

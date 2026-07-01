@@ -113,7 +113,7 @@ python scripts/dataset/compute_statistics.py
 
 ## License
 
-- **Code** in `src/` and `scripts/` is licensed under [MIT](LICENSE).
+- **Code** in `scripts/` is licensed under [MIT](LICENSE).
 - The **ViFoodLabel dataset** (images + annotations) is licensed under [CC BY-NC 4.0](docs/DATA_LICENSE.md) — non-commercial use, attribution required.
 
 **Citation**: A BibTeX entry will be added here once the data article is published.

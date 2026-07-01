@@ -40,12 +40,44 @@ std 106.3).
 | MFG_DATE | 80 | 0.4% |
 | **Total** | **17,961** | 100% |
 
-The distribution is strongly imbalanced: the four ingredient/nutrition types plus
-`WARNING` account for ~90% of all spans, while the date and net-weight fields form
-a long tail (each < 2%). `MFG_DATE` and `EXPIRY_DATE` are the rarest — many labels
-were photographed at angles that cropped or obscured the date area. This imbalance
-is a property of real food labels and is noted as a usage caveat rather than
-corrected.
+### Primary vs. auxiliary entities
+
+The dataset is **panel-centric by design**: images are framed on the food-label
+information panel, so five **primary** entity types account for **90.3%** of all
+spans:
+
+| Group | Entity types | Spans | % |
+|---|---|---|---|
+| **Primary** | INGREDIENT, ADDITIVE, NUTRITION_NAME, NUTRITION_VALUE, WARNING | 16,219 | 90.3% |
+| **Auxiliary** | PRODUCT_NAME, MANUFACTURER, ORIGIN, NET_WEIGHT, MFG_DATE, EXPIRY_DATE | 1,742 | 9.7% |
+
+The six auxiliary types (typically front-of-pack or in separate spots) are
+captured **when they appear in frame**, not targeted by the collection — hence
+their long tail. This is a deliberate scope decision, not an annotation gap (see
+*Field coverage* below).
+
+## Field Coverage
+
+Fraction of images in which each KIE field is present. Primary (information-panel)
+fields are present in most images; auxiliary fields are opportunistic.
+
+| Field | Group | Images present | % |
+|---|---|---|---|
+| ingredients | primary | 386 | 92.8% |
+| warnings | primary | 370 | 88.9% |
+| additives | primary | 355 | 85.3% |
+| nutrition_value | primary | 342 | 82.2% |
+| origin | auxiliary | 255 | 61.3% |
+| manufacturer | auxiliary | 236 | 56.7% |
+| product_name | auxiliary | 219 | 52.6% |
+| net_weight | auxiliary | 136 | 32.7% |
+| expiry_date | auxiliary | 73 | 17.5% |
+| mfg_date | auxiliary | 65 | 15.6% |
+
+Many images are single-panel photographs of the back/side of the package, where
+the dense regulated information lives; the front-of-pack name and the net-weight /
+date markings are therefore often out of frame. This is consistent with the
+dataset's focus on ingredient, additive, nutrition, and warning extraction.
 
 ## Relation Distribution (`HAS_VALUE`)
 
@@ -99,6 +131,14 @@ here once available.
 
 ## Figures
 
-`scripts/dataset/compute_statistics.py` also writes histograms/bar charts to
-`data/processed/figures/`: token-length distribution, entity distribution,
-relation-count distribution, and product-category distribution.
+`scripts/dataset/compute_statistics.py` writes the following to
+`data/processed/figures/`:
+
+| File | Chart |
+|---|---|
+| `entity_distribution.png` | Entity spans per type, coloured by primary/auxiliary group |
+| `token_length_hist.png` | Distribution of tokens per image |
+| `relation_per_image_hist.png` | Distribution of `HAS_VALUE` relations per image |
+| `field_coverage.png` | % of images in which each KIE field is present (primary vs. auxiliary) |
+| `metadata_distributions.png` | Product-category, background-colour, and material distributions |
+| `layout_heatmap.png` | Spatial density of token-box centroids per entity type on the normalized `[0,1000]` canvas |

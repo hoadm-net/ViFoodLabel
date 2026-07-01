@@ -13,6 +13,17 @@
 | Relation types | 1 (`HAS_VALUE`) |
 | Image sources | Self-photographed from Vietnamese supermarkets and convenience stores |
 
+## Scope and Focus
+
+ViFoodLabel is **panel-centric**: images are framed on the food-label information
+panel, where the regulated, information-dense content lives. The five **primary**
+entity types — `INGREDIENT`, `ADDITIVE`, `NUTRITION_NAME`, `NUTRITION_VALUE`,
+`WARNING` — are the collection focus and make up ~90% of all annotated spans. The
+six **auxiliary** types (`PRODUCT_NAME`, `MANUFACTURER`, `ORIGIN`, `NET_WEIGHT`,
+`MFG_DATE`, `EXPIRY_DATE`) are annotated whenever in frame but are not what the
+images are framed around, so they appear less often (see
+[dataset-statistics.md](dataset-statistics.md) for per-field coverage).
+
 ## Image Sources
 
 All images are self-photographed directly from physical products in Vietnamese supermarkets and convenience stores. No e-commerce images, stock photos, or third-party packaging archives are used.

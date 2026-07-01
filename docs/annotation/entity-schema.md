@@ -37,6 +37,22 @@ All entities use the **BIO (Beginning-Inside-Outside)** convention:
 | Other | `O` | Token not belonging to any entity class | — |
 
 
+## Primary vs. Auxiliary Entities
+
+The dataset is **panel-centric**: images are framed on the food-label information
+panel, so five entity types are **primary** collection targets and the remaining
+six are **auxiliary** (annotated whenever they appear in frame, but not what the
+images are framed around).
+
+| Group | Entity types |
+|---|---|
+| **Primary** | `INGREDIENT`, `ADDITIVE`, `NUTRITION_NAME`, `NUTRITION_VALUE`, `WARNING` |
+| **Auxiliary** | `PRODUCT_NAME`, `MANUFACTURER`, `ORIGIN`, `NET_WEIGHT`, `MFG_DATE`, `EXPIRY_DATE` |
+
+All eleven types follow the same annotation rules; the distinction only describes
+collection focus and explains the lower frequency/coverage of the auxiliary types
+(see [dataset-statistics.md](../dataset-statistics.md)).
+
 ## Annotation Boundary Rules
 
 - **INGREDIENT vs ADDITIVE**: Additives are explicitly labeled ingredients with a functional class name and/or E-number (e.g., *Chất tạo màu (102)*). Pure culinary ingredients (e.g., *đường trắng*) are tagged `INGREDIENT`.

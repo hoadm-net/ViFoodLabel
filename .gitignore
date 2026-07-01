@@ -13,7 +13,6 @@ data/label_studio/*
 data/raw/*
 data/thumbnail/*
 data/processed/*
-data/tier_c_results/
 data/release/
 !data/**/.gitkeep
 !data/README.md
@@ -27,20 +26,8 @@ data/face_review_worklist.txt
 # API keys / secrets
 .env
 
-# Model checkpoints / training artifacts
-checkpoints/
-results/
-*.pt
-*.bin
-*.safetensors
-
-# Runtime
-*.log
-
-# Local run-results log (not part of the public repo)
-results.md
-
 # OS / editor
 .DS_Store
+*.log
 .vscode/
 .idea/

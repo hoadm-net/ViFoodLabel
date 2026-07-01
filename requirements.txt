@@ -5,11 +5,9 @@ python-doctr>=0.8                   # text detection
 vietocr>=0.3.13                     # Vietnamese text recognition
 opencv-python>=4.8                  # image prep (HEIC -> JPEG, thumbnails)
 
-# Dataset construction, statistics, and release (scripts/, scripts/dataset/)
-matplotlib>=3.8                     # statistics figures (compute_statistics.py)
-gdown>=4.7                          # dataset image download
-huggingface-hub>=0.23               # dataset publishing utility
+# Dataset statistics figures (scripts/dataset/compute_statistics.py)
+matplotlib>=3.8
 
-# LLM-assisted QC linter (scripts/task3_qc_lint.py)
-openrouter>=0.10                    # text linter via OpenRouter
+# LLM-assisted QC and vision attributes (task3_qc_lint.py, build_dataset_meta.py)
+openrouter>=0.10                    # via OpenRouter API
 python-dotenv>=1.0                  # load API key from .env
